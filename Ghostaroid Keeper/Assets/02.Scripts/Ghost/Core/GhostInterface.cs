@@ -1,14 +1,5 @@
 using UnityEngine;
 
-public enum GhostState
-{
-    Untracked,
-    Tracked,
-    Stunned,
-    Sealed
-}
-
-
 public interface IGhostReveal
 {
     void Reveal(float duration);

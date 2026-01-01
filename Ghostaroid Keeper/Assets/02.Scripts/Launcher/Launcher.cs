@@ -1,7 +1,5 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.EnhancedTouch;
-using Touch = UnityEngine.InputSystem.EnhancedTouch.Touch;
 
 public class Launcher : MonoBehaviour
 {
@@ -34,7 +32,6 @@ public class Launcher : MonoBehaviour
     private Vector2 pullClamped;
     private Vector3 arrowBaseScale;
 
-    private enum PointerPhase { Began, Moved, Stationary, Ended, Canceled }
 
     private void OnEnable()
     {
@@ -59,10 +56,10 @@ public class Launcher : MonoBehaviour
     {
         if (cam == null) cam = Camera.main;
 
-        if (!TryGetPointer(out Vector2 screenPos, out PointerPhase phase))
+        if (!PointerInput.TryGetPointer(out Vector2 screenPos, out PointerInput.PointerPhase phase, out int pointerId))
             return;
 
-        if (phase == PointerPhase.Began)
+        if (phase == PointerInput.PointerPhase.Began)
         {
             aiming = false;
             pullClamped = Vector2.zero;
@@ -70,7 +67,7 @@ public class Launcher : MonoBehaviour
             if (projectile == null || launchOrigin == null)
                 return;
 
-            Vector2 w = ScreenToWorld(screenPos);
+            Vector2 w = PointerInput.ScreenToWorld(cam, screenPos);
 
             if (!projectile.IsGrabbed(w, grabRadiusWorld))
                 return;
@@ -86,12 +83,12 @@ public class Launcher : MonoBehaviour
         if (!aiming)
             return;
 
-        if (phase == PointerPhase.Moved || phase == PointerPhase.Stationary)
+        if (phase == PointerInput.PointerPhase.Moved || phase == PointerInput.PointerPhase.Stationary)
         {
             if (launchOrigin == null || projectile == null) return;
 
             Vector2 origin = launchOrigin.position;
-            Vector2 pointerWorld = ScreenToWorld(screenPos);
+            Vector2 pointerWorld = PointerInput.ScreenToWorld(cam, screenPos);
 
             Vector2 pull = origin - pointerWorld;
             if (pull.y < 0f) pull.y = 0f;
@@ -109,7 +106,7 @@ public class Launcher : MonoBehaviour
             projectile.HoldAt(origin);
         }
 
-        if (phase == PointerPhase.Ended || phase == PointerPhase.Canceled)
+        if (phase == PointerInput.PointerPhase.Ended || phase == PointerInput.PointerPhase.Canceled)
         {
             Fire();
 
@@ -163,74 +160,5 @@ public class Launcher : MonoBehaviour
 
         float h = Mathf.Lerp(arrowMinHeight, arrowMaxHeight, easedPower01);
         arrow.localScale = new Vector3(arrowBaseScale.x, h, arrowBaseScale.z);
-    }
-
-    private Vector2 ScreenToWorld(Vector2 screen)
-    {
-        Vector3 s = new Vector3(screen.x, screen.y, 0f);
-        s.z = -cam.transform.position.z;
-        Vector3 w = cam.ScreenToWorldPoint(s);
-        return new Vector2(w.x, w.y);
-    }
-
-    private bool TryGetPointer(out Vector2 screenPos, out PointerPhase phase)
-    {
-        if (Touch.activeTouches.Count > 0)
-        {
-            var t = Touch.activeTouches[0];
-            screenPos = t.screenPosition;
-
-            switch (t.phase)
-            {
-                case UnityEngine.InputSystem.TouchPhase.Began:
-                    phase = PointerPhase.Began;
-                    return true;
-
-                case UnityEngine.InputSystem.TouchPhase.Moved:
-                    phase = PointerPhase.Moved;
-                    return true;
-
-                case UnityEngine.InputSystem.TouchPhase.Stationary:
-                    phase = PointerPhase.Stationary;
-                    return true;
-
-                case UnityEngine.InputSystem.TouchPhase.Ended:
-                    phase = PointerPhase.Ended;
-                    return true;
-
-                case UnityEngine.InputSystem.TouchPhase.Canceled:
-                    phase = PointerPhase.Canceled;
-                    return true;
-            }
-        }
-
-        var mouse = Mouse.current;
-        if (mouse != null)
-        {
-            if (mouse.leftButton.wasPressedThisFrame)
-            {
-                screenPos = mouse.position.ReadValue();
-                phase = PointerPhase.Began;
-                return true;
-            }
-
-            if (mouse.leftButton.isPressed)
-            {
-                screenPos = mouse.position.ReadValue();
-                phase = PointerPhase.Moved;
-                return true;
-            }
-
-            if (mouse.leftButton.wasReleasedThisFrame)
-            {
-                screenPos = mouse.position.ReadValue();
-                phase = PointerPhase.Ended;
-                return true;
-            }
-        }
-
-        screenPos = default;
-        phase = default;
-        return false;
     }
 }
