@@ -4,7 +4,7 @@ using UnityEngine;
 public class MapSelectionPanel : MonoBehaviour
 {
     [Header("UI")]
-    [SerializeField] private Transform contentRoot;
+    [SerializeField] private RectTransform contentRoot;
     [SerializeField] private Transform poolRoot;
     [SerializeField] private MapSelectionButton buttonPrefab;
 
@@ -26,8 +26,6 @@ public class MapSelectionPanel : MonoBehaviour
 
     private void OnEnable()
     {
-        TryResolveRefs();
-
         int playerLevel = GetPlayerLevelSafe();
         Rebuild(playerLevel);
     }
@@ -91,7 +89,6 @@ public class MapSelectionPanel : MonoBehaviour
 
     private void SetButtons(int playerLevel)
     {
-
         for (int i = 0; i < sortedMaps.Count; ++i)
         {
             MapDataSO map = sortedMaps[i];
@@ -102,7 +99,21 @@ public class MapSelectionPanel : MonoBehaviour
             MapSelectionButton btn = pool.Get();
             btn.Bind(map, unlocked, OnClickMap);
             buttonList.Add(btn);
+
+            ApplyPlacement(btn.transform as RectTransform, contentRoot, map.UiAnchor01, map.UiOffset);
         }
+    }
+
+    private static void ApplyPlacement(RectTransform rect, RectTransform parent, Vector2 anchor01, Vector2 offset)
+    {
+        if (rect == null || parent == null) return;
+
+        rect.SetParent(parent, false);
+        rect.pivot = new Vector2(0.5f, 0.5f);
+        rect.anchorMin = anchor01;
+        rect.anchorMax = anchor01;
+        rect.anchoredPosition = offset;
+        rect.localScale = Vector3.one;
     }
 
     private bool IsUnlocked(MapDataSO map, int playerLevel)

@@ -7,6 +7,9 @@ public class GhostDefinitionSO : ScriptableObject
     [field: Header("Identity")]
     [field: SerializeField] public int Id { get; private set; }
     [field: SerializeField] public string DisplayName { get; private set; }
+
+    [field: Header("Prefab")]
+    [field: SerializeField] public GhostBase Prefab { get; private set; }
     [field: SerializeField] public GhostRarity Rarity { get; private set; }
 
     [field: Header("Codex")]

@@ -16,6 +16,11 @@ public abstract class GhostBase : MonoBehaviour, IGhostReveal, IGhostStunnable, 
     [Header("Knockback")]
     [SerializeField] private float defaultKnockbackForce = 10f;
 
+    [Header("Animation")]
+    [SerializeField] private Animator animator;
+
+    private static readonly int GhostStateHash = Animator.StringToHash("GhostState");
+
     private GhostStateBase currentState;
 
     private GhostUntrackedState sUntracked;
@@ -28,6 +33,8 @@ public abstract class GhostBase : MonoBehaviour, IGhostReveal, IGhostStunnable, 
 
     public GhostVisualController Visual { get; private set; }
 
+    public int DefinitionId { get; private set; }
+
     protected float MoveSpeed => moveSpeed;
     public float RevealTimer { get; set; }
     public float StunTimer { get; set; }
@@ -37,11 +44,22 @@ public abstract class GhostBase : MonoBehaviour, IGhostReveal, IGhostStunnable, 
 
     public GhostState CurrentState => currentState != null ? currentState.State : GhostState.Untracked;
 
+    public GhostMovePatternType MovePatternType { get; private set; } = GhostMovePatternType.Wander;
+    public GhostSpecialPatternType SpecialPatternType { get; private set; } = GhostSpecialPatternType.None;
+
+    public float PatternTurnInterval { get; private set; } = 1f;
+
+    private int stunImmuneHitsLeft = 0;
+    private float stunDurationMultiplier = 1f;
+
     protected virtual void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
         col = GetComponent<Collider2D>();
         Visual = GetComponent<GhostVisualController>();
+
+        if (animator == null)
+            animator = GetComponent<Animator>();
 
         ApplyRbDefaults();
 
@@ -82,10 +100,7 @@ public abstract class GhostBase : MonoBehaviour, IGhostReveal, IGhostStunnable, 
             case GhostState.Tracked: SetState(sTracked); break;
             case GhostState.Stunned: SetState(sStunned); break;
             case GhostState.Sealed: SetState(sSealed); break;
-            default:
-                Debug.LogWarning(state);
-                SetState(sUntracked);
-                break;
+            default: SetState(sUntracked); break;
         }
     }
 
@@ -96,6 +111,14 @@ public abstract class GhostBase : MonoBehaviour, IGhostReveal, IGhostStunnable, 
 
         currentState = next;
         currentState.Enter(this);
+
+        ApplyAnimatorState();
+    }
+
+    private void ApplyAnimatorState()
+    {
+        if (animator == null || currentState == null) return;
+        animator.SetInteger(GhostStateHash, (int)currentState.State);
     }
 
     void IGhostReveal.Reveal(float duration) => currentState.OnFrequency(this, duration);
@@ -132,6 +155,95 @@ public abstract class GhostBase : MonoBehaviour, IGhostReveal, IGhostStunnable, 
         float f = force > 0f ? force : defaultKnockbackForce;
 
         rb.AddForce(-dir * f, ForceMode2D.Impulse);
+    }
+
+    public void OnSpawned(GhostDefinitionSO def)
+    {
+        DefinitionId = def != null ? def.Id : 0;
+
+        ReviveForPool();
+
+        if (def != null)
+            ApplyDefinition(def);
+
+        ChangeState(GhostState.Untracked);
+    }
+
+    public void OnDespawned()
+    {
+        RevealTimer = 0f;
+        StunTimer = 0f;
+
+        SetStunFx(false);
+
+        if (rb != null)
+        {
+            rb.linearVelocity = Vector2.zero;
+            rb.angularVelocity = 0f;
+        }
+    }
+
+    protected virtual void ApplyDefinition(GhostDefinitionSO def)
+    {
+        if (def == null) return;
+
+        if (def.MovePattern != null)
+        {
+            MovePatternType = def.MovePattern.Type;
+            moveSpeed = def.MovePattern.MoveSpeed;
+            PatternTurnInterval = def.MovePattern.TurnInterval;
+        }
+
+        if (def.SpecialPattern != null)
+        {
+            SpecialPatternType = def.SpecialPattern.Type;
+        }
+
+        if (def.StunResist != null)
+        {
+            stunImmuneHitsLeft = Mathf.Max(0, def.StunResist.ImmuneHits);
+            stunDurationMultiplier = Mathf.Max(0f, def.StunResist.StunDurationMultiplier);
+        }
+        else
+        {
+            stunImmuneHitsLeft = 0;
+            stunDurationMultiplier = 1f;
+        }
+    }
+
+    public bool RequestStun(float duration)
+    {
+        if (stunImmuneHitsLeft > 0)
+        {
+            stunImmuneHitsLeft--;
+            return false;
+        }
+
+        float baseDur = duration > 0f ? duration : DefaultStunDuration;
+        float finalDur = baseDur * stunDurationMultiplier;
+
+        StunTimer = finalDur;
+        SetStunFx(true);
+        ChangeState(GhostState.Stunned);
+        return true;
+    }
+
+    private void ReviveForPool()
+    {
+        if (col != null) col.enabled = true;
+
+        if (rb != null)
+        {
+            rb.simulated = true;
+            rb.linearVelocity = Vector2.zero;
+            rb.angularVelocity = 0f;
+        }
+
+        if (Visual != null) Visual.SetInstantVisible(false);
+        SetStunFx(false);
+
+        RevealTimer = 0f;
+        StunTimer = 0f;
     }
 
     public abstract void PatrolTick(float dt);

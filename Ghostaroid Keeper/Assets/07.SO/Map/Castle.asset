@@ -15,6 +15,13 @@ MonoBehaviour:
   <Id>k__BackingField: 1
   <Type>k__BackingField: 0
   <DisplayName>k__BackingField: Castle
-  <Thumbnail>k__BackingField: {fileID: 0}
+  <Thumbnail>k__BackingField: {fileID: -8787799284232652757, guid: 2b0bf3661f2461b4da83dd2f3d70d619, type: 3}
+  <UiAnchor01>k__BackingField: {x: 0.5, y: 0.5}
+  <UiOffset>k__BackingField: {x: -250, y: -250}
+  <BGSprite>k__BackingField: {fileID: 21300000, guid: 64f7a48156cf2d049996252c43558181, type: 3}
+  <WallTopSprite>k__BackingField: {fileID: 10907, guid: 0000000000000000f000000000000000, type: 0}
+  <WallBottomSprite>k__BackingField: {fileID: 10907, guid: 0000000000000000f000000000000000, type: 0}
+  <WallLeftSprite>k__BackingField: {fileID: 10907, guid: 0000000000000000f000000000000000, type: 0}
+  <WallRightSprite>k__BackingField: {fileID: 10907, guid: 0000000000000000f000000000000000, type: 0}
   <Unlock>k__BackingField:
     <RequiredPlayerLevel>k__BackingField: 1

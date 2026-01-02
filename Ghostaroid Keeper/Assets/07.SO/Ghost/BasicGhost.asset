@@ -14,13 +14,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GhostDefinitionSO
   <Id>k__BackingField: 0
   <DisplayName>k__BackingField: Basic Ghost
+  <Prefab>k__BackingField: {fileID: 1389115784096834475, guid: fd5748ecf18cb1846a7b9dad12888810, type: 3}
   <Rarity>k__BackingField: 0
   <DiscoveryHint>k__BackingField: Anywhere
   <Spawns>k__BackingField:
   - <MapType>k__BackingField: 0
-    <AreaTag>k__BackingField: .
+    <AreaType>k__BackingField: 0
     <Condition>k__BackingField: 0
-    <Weight>k__BackingField: 0
+    <Weight>k__BackingField: 1
   <MovePattern>k__BackingField:
     <Type>k__BackingField: 0
     <MoveSpeed>k__BackingField: 2.5

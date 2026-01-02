@@ -14,3 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MapDatabaseSO
   <List>k__BackingField:
   - {fileID: 11400000, guid: d2aff257e09f58e47a41accce0544420, type: 2}
+  - {fileID: 11400000, guid: 7881f604aef8820408a20cb758da1ff1, type: 2}

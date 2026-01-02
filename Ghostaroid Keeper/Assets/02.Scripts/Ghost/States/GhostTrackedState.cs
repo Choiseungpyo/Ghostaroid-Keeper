@@ -23,9 +23,6 @@ public sealed class GhostTrackedState : GhostStateBase
 
     public override void OnStun(GhostBase g, float duration)
     {
-        float dur = duration > 0f ? duration : g.DefaultStunDuration;
-        g.StunTimer = dur;
-        g.SetStunFx(true);
-        g.ChangeState(GhostState.Stunned);
+        g.RequestStun(duration);
     }
 }

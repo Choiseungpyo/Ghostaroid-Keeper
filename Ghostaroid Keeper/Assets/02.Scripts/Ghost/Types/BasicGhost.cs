@@ -25,8 +25,32 @@ public class BasicGhost : GhostBase
     protected override void Awake()
     {
         base.Awake();
+    }
+
+    private void OnEnable()
+    {
+        timer = 0f;
         CacheWalls();
         PickTarget();
+    }
+
+    public void SetMapContext(Transform newMapRoot, Collider2D newRoamArea)
+    {
+        mapRoot = newMapRoot;
+        roamArea = newRoamArea;
+
+        timer = 0f;
+        CacheWalls();
+        PickTarget();
+    }
+
+    protected override void ApplyDefinition(GhostDefinitionSO def)
+    {
+        base.ApplyDefinition(def);
+
+        if (def == null) return;
+        if (def.MovePattern != null)
+            retargetInterval = Mathf.Max(0.05f, def.MovePattern.TurnInterval);
     }
 
     private void CacheWalls()
